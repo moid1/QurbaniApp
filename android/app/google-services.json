@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "695499171491",
+    "project_id": "qurbaniapp-ddf86",
+    "storage_bucket": "qurbaniapp-ddf86.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:695499171491:android:bc355a5dd50f00f168c116",
+        "android_client_info": {
+          "package_name": "com.example.qurbani_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "695499171491-si3kold9ihjv4auee8l0d6onjitpp2af.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwFgWxb7EYds335VLcYaeAQEp8-pYVcUI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "695499171491-si3kold9ihjv4auee8l0d6onjitpp2af.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
