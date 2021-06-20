@@ -3,19 +3,26 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:qurbani_app/exception/authentication_exception.dart';
+import 'package:qurbani_app/models/category.dart';
 import 'package:qurbani_app/models/user.dart';
 
 abstract class AuthenticationService {
+  //Auth Functions
   Future<UserDetail> getCurrentUser();
   Future<String> signInWithPhoneNumber(String phoneNo);
   Future<void> signUpWithPhoneNumber(UserDetail userDetail);
   Future<void> signOut();
+  /////
+
+  Future<List<CategoryModel>> getCurrentCategories();
 }
 
 class FirebaseRepository extends AuthenticationService {
   FirebaseAuth _auth = FirebaseAuth.instance;
   CollectionReference usersCollection =
       FirebaseFirestore.instance.collection('users');
+  CollectionReference categoryCollection =
+      FirebaseFirestore.instance.collection('categories');
 
   UserCredential userCredential;
   String verificationCode;
@@ -49,7 +56,11 @@ class FirebaseRepository extends AuthenticationService {
           this.verificationId = verificationId;
           completer.complete(verificationId);
         },
-        codeAutoRetrievalTimeout: (String verificationId) {},
+        codeAutoRetrievalTimeout: (String verificationId) {
+          print('Again Code Sent');
+          this.verificationId = verificationId;
+          completer.complete(verificationId);
+        },
       );
     } catch (error) {
       completer.complete(null);
@@ -105,5 +116,16 @@ class FirebaseRepository extends AuthenticationService {
   @override
   Future<void> signOut() {
     return null;
+  }
+
+  @override
+  Future<List<CategoryModel>> getCurrentCategories() async {
+    QuerySnapshot querySnapshot = await categoryCollection.get();
+    var categories = querySnapshot.docs.map((e) {
+     
+      return CategoryModel.fromSnapshot(e);
+    }).toList();
+
+    return categories;
   }
 }

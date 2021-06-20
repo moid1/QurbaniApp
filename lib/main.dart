@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qurbani_app/bloc/category/category_bloc.dart';
 import 'package:qurbani_app/screens/home_screen.dart';
 import 'package:qurbani_app/screens/login_screen.dart';
 import 'package:qurbani_app/services/auth_service.dart';
@@ -17,14 +18,32 @@ Future<void> main() async {
       create: (context) {
         return FirebaseRepository();
       },
-      child: BlocProvider<AuthenticationBloc>(
-        create: (context) {
-          final authService =
-              RepositoryProvider.of<AuthenticationService>(context);
-          return AuthenticationBloc(authService)..add(AppLoaded());
-        },
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) {
+            final authService =
+                RepositoryProvider.of<AuthenticationService>(context);
+            AuthenticationBloc(authService);
+            return AuthenticationBloc(authService)..add(AppLoaded());
+          }),
+          BlocProvider(
+            create: (context) {
+              final authService =
+                  RepositoryProvider.of<AuthenticationService>(context);
+              CategoryBloc(authService);
+            },
+          ),
+        ],
         child: MyApp(),
       ),
+      // child: BlocProvider<AuthenticationBloc>(
+      //   create: (context) {
+      //     final authService =
+      //         RepositoryProvider.of<AuthenticationService>(context);
+      //     return AuthenticationBloc(authService)..add(AppLoaded());
+      //   },
+      //   child: MyApp(),
+      // ),
     ),
   );
 }

@@ -3,10 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qurbani_app/bloc/auth/authentication_bloc.dart';
 import 'package:qurbani_app/bloc/auth/authentication_event.dart';
 import 'package:qurbani_app/bloc/auth/authentication_state.dart';
+import 'package:qurbani_app/bloc/category/category_bloc.dart';
+import 'package:qurbani_app/bloc/category/category_event.dart';
 import 'package:qurbani_app/bloc/login/login_bloc.dart';
 import 'package:qurbani_app/bloc/login/login_event.dart';
 import 'package:qurbani_app/bloc/login/login_state.dart';
 import 'package:qurbani_app/config/size.dart';
+import 'package:qurbani_app/models/user.dart';
+import 'package:qurbani_app/screens/home_screen.dart';
 import 'package:qurbani_app/screens/otp_screen.dart';
 import 'package:qurbani_app/screens/signup_screen.dart';
 import 'package:qurbani_app/services/auth_service.dart';
@@ -20,37 +24,38 @@ class LoginPage extends StatelessWidget {
         title: Text('Login'),
       ),
       body: SafeArea(
-          minimum: const EdgeInsets.all(16),
-          child: BlocBuilder<AuthenticationBloc, AuthenticationState>(
-            builder: (context, state) {
-              final authBloc = BlocProvider.of<AuthenticationBloc>(context);
-              if (state is AuthenticationNotAuthenticated) {
-                return _AuthForm();
-              }
-              if (state is AuthenticationFailure) {
-                return Center(
-                    child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(state.message),
-                    ElevatedButton(
-                      child: Text('Retry'),
-                      onPressed: () {
-                        authBloc.add(AppLoaded());
-                      },
-                    )
-                  ],
-                ));
-              }
-              // return splash screen
+        minimum: const EdgeInsets.all(16),
+        child: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+          builder: (context, state) {
+            final authBloc = BlocProvider.of<AuthenticationBloc>(context);
+            if (state is AuthenticationNotAuthenticated) {
+              return _AuthForm();
+            }
+            if (state is AuthenticationFailure) {
               return Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                ),
-              );
-            },
-          )),
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(state.message),
+                  ElevatedButton(
+                    child: Text('Retry'),
+                    onPressed: () {
+                      authBloc.add(AppLoaded());
+                    },
+                  )
+                ],
+              ));
+            }
+            // return splash screen
+            return Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }
@@ -86,6 +91,7 @@ class __SignInFormState extends State<_SignInForm> {
   @override
   Widget build(BuildContext context) {
     final _loginBloc = BlocProvider.of<LoginBloc>(context);
+
     double deviceWidth = ScreenSize(context).deviceWidth;
 
     _onLoginButtonPressed() {
@@ -170,6 +176,26 @@ class __SignInFormState extends State<_SignInForm> {
                     child: Center(
                       child: Text(
                         'Don\'t have an account ? Sign up',
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => HomePage(
+                            user: UserDetail(
+                                name: 'moid',
+                                phoneNo: '+923040532318',
+                                address: 'afs'),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Center(
+                      child: Text(
+                        'By Pass Login',
                       ),
                     ),
                   ),
