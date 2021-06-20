@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:qurbani_app/exception/authentication_exception.dart';
 import 'package:qurbani_app/models/user.dart';
@@ -8,43 +9,51 @@ abstract class AuthenticationService {
   Future<UserDetail> getCurrentUser();
   Future<String> signInWithPhoneNumber(String phoneNo);
   Future<void> signUpWithPhoneNumber(UserDetail userDetail);
-
   Future<void> signOut();
 }
 
 class FirebaseRepository extends AuthenticationService {
   FirebaseAuth _auth = FirebaseAuth.instance;
+  CollectionReference usersCollection =
+      FirebaseFirestore.instance.collection('users');
+
   UserCredential userCredential;
   String verificationCode;
   String verificationId;
 
   @override
   Future<UserDetail> getCurrentUser() async {
-    return null; // return null for now
+    return null;
+    // return UserDetail.fromSnapshot(
+    //     await usersCollection.doc(_auth.currentUser.phoneNumber).get());
   }
 
   @override
   Future<String> signInWithPhoneNumber(String phoneNo) async {
     print('this is ' + phoneNo);
     var completer = Completer<String>();
-    await _auth.verifyPhoneNumber(
-      phoneNumber: phoneNo,
-      timeout: Duration(seconds: 30),
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        print('Verification Completed');
-        await _auth.signInWithCredential(credential);
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        print(e.message);
-        throw AuthenticationException(message: e.message);
-      },
-      codeSent: (String verificationId, int resentToken) {
-        print('Code Sent');
-        this.verificationId = verificationId;
-        completer.complete(verificationId);
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {},
-    );
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNo,
+        timeout: Duration(seconds: 30),
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          print('Verification Completed');
+          await _auth.signInWithCredential(credential);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          completer.complete(null);
+          throw AuthenticationException(message: e.message ?? 'Unknown Error');
+        },
+        codeSent: (String verificationId, int resentToken) {
+          print('Code Sent');
+          this.verificationId = verificationId;
+          completer.complete(verificationId);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
+      );
+    } catch (error) {
+      completer.complete(null);
+    }
 
     return completer.future;
   }
@@ -79,7 +88,7 @@ class FirebaseRepository extends AuthenticationService {
         await _auth.signInWithCredential(credential);
       },
       verificationFailed: (FirebaseAuthException e) {
-        print(e.message);
+        print('asfdasdf' + e.message);
         throw AuthenticationException(message: e.message);
       },
       codeSent: (String verificationId, int resentToken) {

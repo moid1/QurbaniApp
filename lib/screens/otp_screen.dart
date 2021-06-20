@@ -40,12 +40,13 @@ class OtpScreen extends StatelessWidget {
           child: BlocListener<LoginBloc, LoginState>(
             listener: (context, state) {
               if (state is OtpVerified) {
-                Navigator.push(
+                Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
                         builder: (_) => HomePage(
                               user: state.user,
-                            )));
+                            )),
+                    (route) => false);
               } else if (state is LoginLoading) {
                 Center(
                   child: CircularProgressIndicator(),
@@ -58,7 +59,7 @@ class OtpScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Verification code has been sent to \n',
+                  'Verification code has been sent to \n $phoneNo',
                   textAlign: TextAlign.center,
                 ),
                 Padding(

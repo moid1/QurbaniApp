@@ -11,6 +11,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
+  // ignore: unused_field
   final AuthenticationBloc _authenticationBloc;
   final AuthenticationService _authenticationService;
   final _auth = FirebaseAuth.instance;
@@ -39,10 +40,19 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       LoginInWithEmailButtonPressed event) async* {
     yield LoginLoading();
     try {
-      String verificationID =
-          await _authenticationService.signInWithPhoneNumber(event.phoneNumber);
-      print('hows $verificationID');
-      yield OtpSent(verificationId: verificationID, phoneNo: event.phoneNumber);
+      final userAlreadyExists = await users.doc(event.phoneNumber).get();
+      if (userAlreadyExists.exists) {
+        String verificationID = await _authenticationService
+            .signInWithPhoneNumber(event.phoneNumber);
+        print('this is veri $verificationID');
+        if (verificationID == null)
+          yield LoginFailure(error: "FirebaseAuth SMS not working");
+        else
+          yield OtpSent(
+              verificationId: verificationID, phoneNo: event.phoneNumber);
+      } else {
+        yield LoginFailure(error: "User Not Found");
+      }
     } on AuthenticationException catch (e) {
       yield LoginFailure(error: e.message);
     } catch (err) {
@@ -52,33 +62,30 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
   Stream<LoginState> _mapVerifiyOtpToState(VerifyOtp event) async* {
     print('this is code ${event.code}');
-    var completer = Completer<String>();
     yield LoginLoading();
     if (event.code.isEmpty) {
-      yield LoginFailure(
-          error: 'Please Enter Valid OTP' ?? 'An unknown error occured');
+      yield LoginFailure(error: 'Please Enter Valid OTP');
+    } else if (event.verificationId == null) {
+      yield LoginFailure(error: 'Verification Id not found');
     } else {
       PhoneAuthCredential phoneAuthCredential = PhoneAuthProvider.credential(
           verificationId: event.verificationId, smsCode: event.code);
       print(phoneAuthCredential.verificationId);
+
       try {
         final authCredentials =
             await _auth.signInWithCredential(phoneAuthCredential);
-        if (authCredentials != null) {
-          if (event.isSignup) {
-            print('s');
-
-            users
-                .doc(event.userDetail.phoneNo)
-                .set(event.userDetail.toJson())
-                .then((value) => print('User addess'))
-                .catchError((onError) => print('this is error $onError'));
-            yield OtpVerified(user: event.userDetail);
-          } else {
-            yield OtpVerified(user: null);
-          }
+        if (authCredentials.additionalUserInfo.isNewUser) {
+          users
+              .doc(event.userDetail.phoneNo)
+              .set(event.userDetail.toJson())
+              .then((value) => print('User addess'))
+              .catchError((onError) => print('this is error $onError'));
+          yield OtpVerified(user: event.userDetail);
         } else {
-          print('Error hi rro');
+          final userSnapShot =
+              await users.doc(authCredentials.user.phoneNumber).get();
+          yield OtpVerified(user: UserDetail.fromSnapshot(userSnapShot));
         }
       } on FirebaseAuthException catch (e) {
         yield LoginFailure(error: e.message ?? 'An unknown error occured');
@@ -89,11 +96,21 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   Stream<LoginState> _mapSignupToState(SignUpButtonPressed event) async* {
     yield LoginLoading();
     try {
-      String verificationID = await _authenticationService
-          .signInWithPhoneNumber(event.userDetail.phoneNo);
-      print('hows $verificationID');
-      yield OtpSent(
-          verificationId: verificationID, phoneNo: event.userDetail.phoneNo);
+      final userAlreadyExists = await users.doc(event.userDetail.phoneNo).get();
+      if (userAlreadyExists.exists) {
+        yield LoginFailure(error: 'User Already Available');
+      } else {
+        String verificationID = await _authenticationService
+            .signInWithPhoneNumber(event.userDetail.phoneNo);
+        print('this is veri $verificationID');
+
+        if (verificationID == null)
+          yield LoginFailure(error: 'Service Unavailable Right Now');
+        else
+          yield OtpSent(
+              verificationId: verificationID,
+              phoneNo: event.userDetail.phoneNo);
+      }
     } on AuthenticationException catch (e) {
       yield LoginFailure(error: e.message);
     } catch (err) {
