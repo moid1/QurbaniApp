@@ -92,8 +92,6 @@ class __SignInFormState extends State<_SignInForm> {
   Widget build(BuildContext context) {
     final _loginBloc = BlocProvider.of<LoginBloc>(context);
 
-    double deviceWidth = ScreenSize(context).deviceWidth;
-
     _onLoginButtonPressed() {
       if (_key.currentState.validate()) {
         _loginBloc.add(
@@ -179,8 +177,11 @@ class __SignInFormState extends State<_SignInForm> {
                       ),
                     ),
                   ),
-                  InkWell(
-                    onTap: () {
+                  const SizedBox(
+                    height: 15.0,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -193,11 +194,11 @@ class __SignInFormState extends State<_SignInForm> {
                         ),
                       );
                     },
-                    child: Center(
-                      child: Text(
-                        'By Pass Login',
-                      ),
+                    style: ElevatedButton.styleFrom(
+                      primary: Theme.of(context).primaryColor,
+                      padding: EdgeInsets.all(16.0),
                     ),
+                    child: Text('ByPass Login'),
                   ),
                 ],
               ),

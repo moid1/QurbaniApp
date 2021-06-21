@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:equatable/equatable.dart';
 import 'package:qurbani_app/models/category.dart';
+import 'package:qurbani_app/models/products.dart';
 
 abstract class CategoryState extends Equatable {
   @override
@@ -25,4 +26,17 @@ class CategoryFailure extends CategoryState {
 
   @override
   List<Object> get props => [error];
+}
+
+class ProductsLoaded extends CategoryState {
+  final List<ProductModel> productsList;
+  final String categoryName;
+
+  ProductsLoaded({
+    @required this.productsList,
+    @required this.categoryName,
+  });
+
+  @override
+  List<Object> get props => [productsList, categoryName];
 }

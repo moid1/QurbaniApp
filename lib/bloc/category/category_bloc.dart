@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:qurbani_app/bloc/category/category_event.dart';
 import 'package:qurbani_app/bloc/category/category_state.dart';
 import 'package:qurbani_app/models/category.dart';
+import 'package:qurbani_app/models/products.dart';
 import 'package:qurbani_app/services/auth_service.dart';
 
 class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
@@ -26,7 +27,15 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   }
 
   Stream<CategoryState> _mapGoToCategoryToState(GoToCategory event) async* {
+    print('GoToCategory Event Fired ');
+    print('Category id is ${event.id}');
     yield CategoryLoading();
+
+    List<ProductModel> productsList =
+        await _authenticationService.getProducts(event.id);
+
+    yield ProductsLoaded(
+        productsList: productsList, categoryName: event.categoryName);
   }
 
   Stream<CategoryState> _mapLoadCategoriesToState(LoadCategories event) async* {

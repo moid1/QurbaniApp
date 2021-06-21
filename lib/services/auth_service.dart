@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:qurbani_app/exception/authentication_exception.dart';
 import 'package:qurbani_app/models/category.dart';
+import 'package:qurbani_app/models/products.dart';
 import 'package:qurbani_app/models/user.dart';
 
 abstract class AuthenticationService {
@@ -15,6 +16,7 @@ abstract class AuthenticationService {
   /////
 
   Future<List<CategoryModel>> getCurrentCategories();
+  Future<List<ProductModel>> getProducts(String categoryId);
 }
 
 class FirebaseRepository extends AuthenticationService {
@@ -23,6 +25,9 @@ class FirebaseRepository extends AuthenticationService {
       FirebaseFirestore.instance.collection('users');
   CollectionReference categoryCollection =
       FirebaseFirestore.instance.collection('categories');
+
+  CollectionReference productsCollection =
+      FirebaseFirestore.instance.collection('products');
 
   UserCredential userCredential;
   String verificationCode;
@@ -99,7 +104,6 @@ class FirebaseRepository extends AuthenticationService {
         await _auth.signInWithCredential(credential);
       },
       verificationFailed: (FirebaseAuthException e) {
-        print('asfdasdf' + e.message);
         throw AuthenticationException(message: e.message);
       },
       codeSent: (String verificationId, int resentToken) {
@@ -122,10 +126,28 @@ class FirebaseRepository extends AuthenticationService {
   Future<List<CategoryModel>> getCurrentCategories() async {
     QuerySnapshot querySnapshot = await categoryCollection.get();
     var categories = querySnapshot.docs.map((e) {
-     
-      return CategoryModel.fromSnapshot(e);
+      return CategoryModel(
+          id: e.id,
+          name: e.get('name'),
+          createdAt: e.get('created_at'),
+          image: e.get('image'));
     }).toList();
 
     return categories;
+  }
+
+  @override
+  Future<List<ProductModel>> getProducts(String categoryId) async {
+    QuerySnapshot querySnapshot = await productsCollection
+        .where('category_id', isEqualTo: categoryId)
+        .get();
+
+    var products = querySnapshot.docs.map((e) {
+      return ProductModel.fromSnapshot(e);
+    }).toList();
+
+    print(products.length);
+
+    return products;
   }
 }

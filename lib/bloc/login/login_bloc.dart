@@ -75,7 +75,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       try {
         final authCredentials =
             await _auth.signInWithCredential(phoneAuthCredential);
-        if (authCredentials.additionalUserInfo.isNewUser) {
+        if (event.isSignup) {
           users
               .doc(event.userDetail.phoneNo)
               .set(event.userDetail.toJson())
